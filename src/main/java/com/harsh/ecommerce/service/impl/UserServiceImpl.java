@@ -10,6 +10,7 @@ import com.harsh.ecommerce.repository.RoleRepository;
 import com.harsh.ecommerce.repository.UserRepository;
 import com.harsh.ecommerce.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -22,6 +23,8 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
 
+    private final PasswordEncoder passwordEncoder;
+
     @Override
     public UserResponse register(RegisterRequest request) {
         if(userRepository.existsByEmail(request.getEmail())) {
@@ -31,6 +34,9 @@ public class UserServiceImpl implements UserService {
             throw new ResourceAlreadyExistsException("Phone number already exists");
         }
         User user = UserMapper.toEntity(request);
+        user.setPassword(
+                passwordEncoder.encode(request.getPassword())
+        );
 
         Role role = roleRepository.findByName("ROLE_USER")
         .orElseThrow(()-> new RuntimeException("Default role not found"));
