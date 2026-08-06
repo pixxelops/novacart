@@ -1,6 +1,7 @@
 package com.harsh.ecommerce.controller;
 
 import com.harsh.ecommerce.dto.request.ProductRequest;
+import com.harsh.ecommerce.dto.response.PageResponse;
 import com.harsh.ecommerce.dto.response.ProductResponse;
 import com.harsh.ecommerce.service.ProductService;
 import jakarta.validation.Valid;
@@ -24,10 +25,19 @@ public class ProductController {
     }
 
     @GetMapping
-    public List<ProductResponse> getAllProducts(){
-        return productService.getAllProducts();
+    public PageResponse<ProductResponse>getAllProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id")String sortBy,
+            @RequestParam(defaultValue = "asc") String direction
+    ){
+        return productService.getAllProducts(
+                page,
+                size,
+                sortBy,
+                direction
+        );
     }
-
     @GetMapping("/{id}")
     public ProductResponse getProductById(@PathVariable Long id){
         return productService.getProductById(id);

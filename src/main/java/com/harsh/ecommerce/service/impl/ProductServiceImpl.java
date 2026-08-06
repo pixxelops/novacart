@@ -1,6 +1,7 @@
 package com.harsh.ecommerce.service.impl;
 
 import com.harsh.ecommerce.dto.request.ProductRequest;
+import com.harsh.ecommerce.dto.response.PageResponse;
 import com.harsh.ecommerce.dto.response.ProductResponse;
 import com.harsh.ecommerce.entity.Category;
 import com.harsh.ecommerce.entity.Product;
@@ -10,6 +11,10 @@ import com.harsh.ecommerce.repository.CategoryRepository;
 import com.harsh.ecommerce.repository.ProductRepository;
 import com.harsh.ecommerce.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,11 +42,32 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductResponse> getAllProducts() {
-        return productRepository.findAll().stream()
+    public PageResponse<ProductResponse> getAllProducts(int page, int size, String sortBy, String direction) {
+        Sort sort = direction.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Pageable pageable = PageRequest.of(page,size,sort);
+
+        Page<Product> productPage = productRepository.findAll(pageable);
+
+        List<ProductResponse>products = productPage.getContent()
+                .stream()
                 .map(ProductMapper::toResponse)
                 .toList();
+
+
+        return PageResponse.<ProductResponse>builder()
+                .content(products)
+                .pageNumber(productPage.getNumber())
+                .pageSize(productPage.getSize())
+                .totalElements(productPage.getTotalElements())
+                .totalPages(productPage.getTotalPages())
+                .last(productPage.isLast())
+                .build();
+
     }
+
 
     @Override
     public ProductResponse getProductById(Long id) {
