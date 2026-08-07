@@ -109,4 +109,34 @@ public class ProductServiceImpl implements ProductService {
         productRepository.delete(product);
 
     }
+
+    @Override
+    public PageResponse<ProductResponse> searchProducts(
+            String keyword,
+            int page,
+            int size) {
+        Pageable pageable = PageRequest.of(page,size);
+
+        Page<Product>productPage = productRepository
+                .findByNameContainingIgnoreCaseOrBrandContainingIgnoreCase(
+                        keyword,
+                        keyword,
+                        pageable
+                );
+
+        List<ProductResponse>products = productPage.getContent()
+                .stream()
+                .map(ProductMapper::toResponse)
+                .toList();
+
+        return PageResponse.<ProductResponse>builder()
+                .content(products)
+                .pageNumber(productPage.getNumber())
+                .pageSize(productPage.getSize())
+                .totalElements(productPage.getTotalElements())
+                .totalPages(productPage.getTotalPages())
+                .last(productPage.isLast())
+                .build();
+
+    }
 }

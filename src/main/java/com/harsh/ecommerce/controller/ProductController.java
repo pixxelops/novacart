@@ -55,4 +55,14 @@ public class ProductController {
     public void deleteProductById(@PathVariable Long id){
         productService.deleteProduct(id);
     }
+
+
+    @GetMapping("/search")
+    public PageResponse<ProductResponse>searchProducts(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ){
+        return productService.searchProducts(keyword,page,size);
+    }
 }

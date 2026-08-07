@@ -23,4 +23,11 @@ public interface ProductService {
 
     void deleteProduct(Long id);
 
+
+    PageResponse<ProductResponse>searchProducts(
+            String keyword,
+            int page,
+            int size
+    );
+
 }
