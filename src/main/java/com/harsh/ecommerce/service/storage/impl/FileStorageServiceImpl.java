@@ -2,6 +2,7 @@ package com.harsh.ecommerce.service.storage.impl;
 
 import com.harsh.ecommerce.service.storage.FileStorageService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -12,6 +13,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
+
+@Service
 public class FileStorageServiceImpl implements FileStorageService {
 
     @Value("${file.upload-dir}")

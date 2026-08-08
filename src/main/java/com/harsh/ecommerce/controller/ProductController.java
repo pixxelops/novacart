@@ -3,10 +3,12 @@ package com.harsh.ecommerce.controller;
 import com.harsh.ecommerce.dto.request.ProductRequest;
 import com.harsh.ecommerce.dto.response.PageResponse;
 import com.harsh.ecommerce.dto.response.ProductResponse;
+import com.harsh.ecommerce.service.ProductImageService;
 import com.harsh.ecommerce.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -16,6 +18,7 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final ProductImageService productImageService;
 
     @PostMapping
     public ProductResponse createProduct(
@@ -64,5 +67,15 @@ public class ProductController {
             @RequestParam(defaultValue = "10") int size
     ){
         return productService.searchProducts(keyword,page,size);
+    }
+
+
+    @PostMapping("/{productId}/images")
+    public String uploadImages(
+            @PathVariable Long productId,
+            @RequestParam("files")List<MultipartFile>files
+    ){
+        productImageService.uploadImages(productId,files);
+        return "Images uploaded successfully";
     }
 }

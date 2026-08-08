@@ -4,6 +4,8 @@ import com.harsh.ecommerce.dto.request.ProductRequest;
 import com.harsh.ecommerce.dto.response.ProductResponse;
 import com.harsh.ecommerce.entity.Product;
 
+import java.util.List;
+
 public class ProductMapper {
 
     private ProductMapper(){
@@ -22,7 +24,10 @@ public class ProductMapper {
     }
 
     public static ProductResponse toResponse(Product product){
-
+        List<String>imageUrls = product.getImages()
+                .stream()
+                .map(image -> image.getImageUrl())
+                .toList();
         return ProductResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
@@ -33,6 +38,7 @@ public class ProductMapper {
                 .discountPercentage(product.getDiscountPercentage())
                 .active(product.getActive())
                 .categoryName(product.getCategory().getName())
+                .imageUrls(imageUrls)
                 .build();
     }
 
