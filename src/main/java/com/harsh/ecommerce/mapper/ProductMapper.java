@@ -37,6 +37,7 @@ public class ProductMapper {
                 .stockQuantity(product.getStockQuantity())
                 .discountPercentage(product.getDiscountPercentage())
                 .active(product.getActive())
+                .categoryId(product.getCategory().getId())
                 .categoryName(product.getCategory().getName())
                 .imageUrls(imageUrls)
                 .build();
