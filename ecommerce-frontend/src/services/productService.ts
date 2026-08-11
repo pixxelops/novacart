@@ -1,4 +1,4 @@
-import type { ProductPage } from "../types/product";
+import type { Product, ProductPage } from "../types/product";
 import api from "./api";
 
 
@@ -20,4 +20,11 @@ direction : string="asc"
 
     return response.data;
 
+}
+
+
+export async function getProductById(id:number):Promise<Product>{
+    const response = await api.get<Product>(`/products/${id}`);
+
+    return response.data;
 }
