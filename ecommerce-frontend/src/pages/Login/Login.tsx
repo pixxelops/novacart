@@ -1,6 +1,8 @@
 import { useState, type SubmitEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { login } from '../../services/authServices';
+import { useAuth } from '../../context/useAuth';
+
 
 const Login = () => {
     const navigate = useNavigate();
@@ -10,6 +12,8 @@ const Login = () => {
 
     const [loading, setLoading] = useState(false);
     const [error,setError] = useState("");
+
+    const {login:authenticate} = useAuth();
 
     async function handleSubmit(event : SubmitEvent<HTMLFormElement>){
         event.preventDefault();
@@ -31,7 +35,7 @@ const Login = () => {
             
             });
 
-            localStorage.setItem("token", data.token);
+            authenticate(data.token);
             navigate("/");
         }catch(error){
             console.error(error);

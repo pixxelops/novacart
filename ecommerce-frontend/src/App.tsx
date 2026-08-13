@@ -4,12 +4,14 @@ import Home from "./pages/Home/Home";
 import Products from "./pages/Products/Products";
 import ProductDetails from "./pages/ProductDetails/ProductDetails";
 import Login from "./pages/Login/Login";
+import { AuthProvider } from "./context/AuthProvider";
 
 
 
 function App() {
   return (
-    <BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
     <Navbar/>
 
     <Routes>
@@ -23,9 +25,13 @@ function App() {
           element={<ProductDetails />}
         />
         <Route path="/login" element = {<Login/>}/>
+        <Route path="/cart" element={<div>Cart</div>} />
+<Route path="/account" element={<div>Account</div>} />
       </Routes>
     </BrowserRouter>
    
+    </AuthProvider>
+    
   );
 
 
