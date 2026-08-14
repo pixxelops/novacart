@@ -5,14 +5,16 @@ import Products from "./pages/Products/Products";
 import ProductDetails from "./pages/ProductDetails/ProductDetails";
 import Login from "./pages/Login/Login";
 import { AuthProvider } from "./context/AuthProvider";
-import Cart from "./pages/Cart";
+import Cart from "./pages/Cart/Cart";
+import { CartProvider } from "./context/CartProvider";
 
 
 
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <CartProvider>
+        <BrowserRouter>
     <Navbar/>
 
     <Routes>
@@ -30,6 +32,8 @@ function App() {
 <Route path="/account" element={<div>Account</div>} />
       </Routes>
     </BrowserRouter>
+      </CartProvider>
+      
    
     </AuthProvider>
     

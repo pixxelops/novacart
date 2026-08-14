@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import {
-  getCart,
+  getMyCart,
   updateCartItem,
   removeFromCart,
   clearCart,
-  type CartResponse,
-} from "../services/cartService";
+} from "../../services/cartService";
+import type { CartResponse } from "../../types/Cart";
 
 const IMAGE_BASE_URL = "http://localhost:8080";
 
@@ -18,7 +18,7 @@ const Cart = () => {
 
     const fetchCart = async () => {
       try {
-        const data = await getCart();
+        const data = await getMyCart();
 
         if (!cancelled) {
           setCart(data);

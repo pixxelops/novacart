@@ -1,23 +1,8 @@
+
+import type { CartResponse } from "../types/Cart";
 import api from "./api";
 
-export interface CartItemResponse{
-    productId: number;
-  productName: string;
-  price: number;
-  quantity: number;
-  subtotal: number;
-  imageUrls: string[];
-}
-
-export interface CartResponse {
-  cartId: number;
-  items: CartItemResponse[];
-  totalItems: number;
-  totalPrice: number;
-}
-
-
-export const getCart = async(): Promise<CartResponse> =>{
+export const getMyCart = async(): Promise<CartResponse> =>{
     const response = await api.get<CartResponse>("/cart");
 
     return response.data;

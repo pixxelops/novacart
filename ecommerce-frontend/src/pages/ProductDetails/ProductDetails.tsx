@@ -1,13 +1,19 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 import type { Product } from "../../types/product";
 import { getProductById } from "../../services/productService";
+import { useAuth } from "../../context/useAuth";
+import { useCart } from "../../context/useCart";
 
 const API_URL = "http://localhost:8080";
 
 export default function ProductDetails() {
+
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+    const {isAuthenticated} = useAuth();
+  const {addItemToCart} = useCart();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -16,6 +22,12 @@ export default function ProductDetails() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+
+
+  const [addingToCart, setAddingToCart] = useState(false);
+const [addedToCart, setAddedToCart] = useState(false);
+const [cartError, setCartError] = useState("");
 
   useEffect(() => {
     async function loadProduct() {
@@ -39,10 +51,40 @@ export default function ProductDetails() {
       } finally {
         setLoading(false);
       }
-    }
+    } 
 
     loadProduct();
   }, [id]);
+
+  const handleAddToCart = async() =>{
+    if(!isAuthenticated){
+      navigate("/login");
+      return;
+    }
+
+    if(!product || product.stockQuantity <=0){
+      return;
+    }
+
+    try{
+      setAddingToCart(true);
+      setAddedToCart(false);
+      setCartError("");
+
+      await addItemToCart(product.id, quantity);
+
+      setAddedToCart(true);
+      setTimeout(() =>{
+        setAddedToCart(false);
+      },2000);
+    }catch(error){
+      console.error("Failed to add product to cart : ", error);
+      setCartError("Failed to add product to cart.");
+    }finally{
+      setAddingToCart(false);
+      
+    }
+  }
 
   if (loading) {
     return (
@@ -138,9 +180,9 @@ export default function ProductDetails() {
 
         <div className="grid items-start gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(400px,0.75fr)]">
 
-          {/* ========================= */}
-          {/* IMAGE GALLERY */}
-          {/* ========================= */}
+   
+          {/* IMAGE VieW */}
+    
 
           <div className="min-w-0">
 
@@ -197,10 +239,8 @@ export default function ProductDetails() {
             )}
 
           </div>
-
-          {/* ========================= */}
-          {/* PRODUCT INFORMATION */}
-          {/* ========================= */}
+          {/* PRODUCT INFORMTION */}
+   
 
           <div className="lg:pt-4">
 
@@ -235,11 +275,11 @@ export default function ProductDetails() {
 
               {product.stockQuantity > 0 ? (
                 <p className="text-sm font-medium text-green-700">
-                  ● In stock — {product.stockQuantity} available
+                  ⚫ In stock — {product.stockQuantity} available
                 </p>
               ) : (
                 <p className="text-sm font-medium text-red-600">
-                  ● Out of stock
+                  ⚫ Out of stock
                 </p>
               )}
 
@@ -297,11 +337,21 @@ export default function ProductDetails() {
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
 
               <button
-                disabled={product.stockQuantity === 0}
+              type = "button"
+              onClick = {handleAddToCart}
+                disabled={product.stockQuantity === 0 || addingToCart} 
                 className="flex-1 rounded-full bg-black px-7 py-4 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
               >
-                Add to cart
+               {addingToCart ? "Adding to cart..." 
+               :addedToCart ? "Added to cart ✅"
+               : "Add to cart"}
               </button>
+
+              {cartError && (
+                <p className="mt-3 text-sm font-medium text-red-600">
+                  {cartError}
+                </p>
+              )}
 
               <button
                 disabled={product.stockQuantity === 0}
