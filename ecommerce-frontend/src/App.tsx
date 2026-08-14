@@ -5,6 +5,7 @@ import Products from "./pages/Products/Products";
 import ProductDetails from "./pages/ProductDetails/ProductDetails";
 import Login from "./pages/Login/Login";
 import { AuthProvider } from "./context/AuthProvider";
+import Cart from "./pages/Cart";
 
 
 
@@ -25,7 +26,7 @@ function App() {
           element={<ProductDetails />}
         />
         <Route path="/login" element = {<Login/>}/>
-        <Route path="/cart" element={<div>Cart</div>} />
+        <Route path="/cart" element={<Cart/>} />
 <Route path="/account" element={<div>Account</div>} />
       </Routes>
     </BrowserRouter>
