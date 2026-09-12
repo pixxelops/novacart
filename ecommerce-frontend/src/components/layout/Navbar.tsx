@@ -88,6 +88,14 @@ export default function Navbar() {
 
           {isAuthenticated ? (
             <>
+
+             {/* Orders */}
+    <Link
+      to="/orders"
+      className="hidden text-sm font-medium text-gray-600 transition hover:text-black md:block"
+    >
+      Orders
+    </Link>
               {/* Account */}
               <Link
                 to="/account"

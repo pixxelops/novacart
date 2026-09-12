@@ -1,6 +1,7 @@
 package com.harsh.ecommerce.dto.response;
 
 import com.harsh.ecommerce.entity.OrderStatus;
+import com.harsh.ecommerce.entity.PaymentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -25,6 +26,9 @@ public class OrderResponse {
     private BigDecimal totalAmount;
 
     private OrderStatus status;
+
+    private PaymentStatus paymentStatus;
+
 
     private LocalDateTime createdAt;
 

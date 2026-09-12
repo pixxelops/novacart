@@ -35,6 +35,11 @@ public class Order {
     @Builder.Default
     private OrderStatus status = OrderStatus.PENDING;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private PaymentStatus paymentStatus = PaymentStatus.PENDING;
+
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -50,6 +55,7 @@ public class Order {
     )
     @Builder.Default
     private List<OrderItem> items = new ArrayList<>();
+
 
     @PrePersist
     protected void onCreate() {

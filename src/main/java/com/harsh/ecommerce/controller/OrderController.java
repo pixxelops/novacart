@@ -40,7 +40,7 @@ public class OrderController {
         );
     }
 
-    @GetMapping("/{orderId}/cancel")
+    @PutMapping("/{orderId}/cancel")
     public ResponseEntity<OrderResponse>cancelOrder(
             @PathVariable Long orderId
     ){

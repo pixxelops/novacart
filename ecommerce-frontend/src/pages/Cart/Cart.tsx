@@ -6,12 +6,14 @@ import {
   clearCart,
 } from "../../services/cartService";
 import type { CartResponse } from "../../types/Cart";
+import { useNavigate } from "react-router-dom";
 
 const IMAGE_BASE_URL = "http://localhost:8080";
 
 const Cart = () => {
   const [cart, setCart] = useState<CartResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     let cancelled = false;
@@ -296,7 +298,8 @@ const Cart = () => {
             <button
               className="mt-6 w-full rounded-md bg-black px-4 py-3 font-medium text-white hover:bg-gray-800"
               onClick={() => {
-                // Checkout will be implemented next
+                navigate("/checkout");
+                
               }}
             >
               Proceed to Checkout

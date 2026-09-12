@@ -47,6 +47,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = Order.builder()
                 .user(user)
                 .status(OrderStatus.PENDING)
+                .paymentStatus(PaymentStatus.PENDING)
                 .totalAmount(BigDecimal.ZERO)
                 .build();
 
@@ -188,6 +189,7 @@ public class OrderServiceImpl implements OrderService {
                 .userId(order.getUser().getId())
                 .totalAmount(order.getTotalAmount())
                 .status(order.getStatus())
+                .paymentStatus(order.getPaymentStatus())
                 .createdAt(order.getCreatedAt())
                 .updatedAt(order.getUpdatedAt())
                 .items(items)

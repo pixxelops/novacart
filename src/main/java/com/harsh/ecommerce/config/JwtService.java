@@ -1,9 +1,7 @@
 package com.harsh.ecommerce.config;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +15,7 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
+    // read from application property `jwt.secret` (which may itself default from env JWT_SECRET)
     @Value("${jwt.secret}")
     private String secret;
 
@@ -35,7 +34,7 @@ public class JwtService {
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
-                .signWith(key, SignatureAlgorithm.HS256)
+                .signWith(key)
                 .compact();
     }
 
