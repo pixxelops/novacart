@@ -30,6 +30,11 @@ public class Order {
     private BigDecimal totalAmount;
 
 
+    @Column(unique = true)
+    private String razorpayOrderId;
+
+    private String razorpayPaymentId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default

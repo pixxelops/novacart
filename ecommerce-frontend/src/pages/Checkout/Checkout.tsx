@@ -4,9 +4,34 @@ import type { CartResponse } from '../../types/Cart';
 
 import { createOrder } from '../../services/orderService';
 import { getMyCart } from '../../services/cartService';
+import { createPaymentOrder, verifyPayment } from '../../services/paymentService';
+
 
 
 const IMAGE_BASE_URL = "http://localhost:8080";
+
+  const loadRazorpayScript = ():Promise<boolean> =>{
+    return new Promise((resolve) => {
+      if(document.getElementById("razorpay_checkout_script")){
+        resolve(true);
+        return;
+      }
+
+      const script = document.createElement("script");
+
+      script.id = "razorpay_checkout_script";
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+
+
+      script.onload = () => resolve(true);
+
+      script.onerror = () => resolve(false);
+
+      document.body.appendChild(script);
+
+
+    })
+  }
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -62,19 +87,91 @@ const Checkout = () => {
       setError("");
       const order  = await createOrder();
 
-      navigate(`/order-success/${order.orderId}`);
-    }catch(error:any){
-      console.error("Failed to place order:", error);
+      const paymentOrder = await createPaymentOrder(
+        order.orderId
+      );
 
-      const message =
-        error?.response?.data?.message ||
-        "Failed to place order. Please try again.";
+      const razorpayLoaded = await loadRazorpayScript();
 
-      setError(message);
-    } finally {
-      setPlacingOrder(false);
-    }
+      if(!razorpayLoaded){
+        throw new Error("Failed to load Razorpay script. Please check your internet connection.");
+      }
+      
+
+      const options = {
+        key : paymentOrder.keyId,
+        amount : paymentOrder.amount,
+        currency : paymentOrder.currency,
+        name : "Novacart",
+        description : `Payment for Order #${order.orderId}`,
+        order_id : paymentOrder.razorpayOrderId,
+
+        handler : async(response : RazorpayPaymentResponse) =>{
+
+          try {
+            console.log("Payment successful. Verifying payment...");
+
+
+            await verifyPayment({
+              orderId : order.orderId,
+              razorpayOrderId : response.razorpay_order_id,
+              razorpayPaymentId : response.razorpay_payment_id,
+              razorpaySignature : response.razorpay_signature
+            });
+
+            console.log("Payment verified successfully.");
+            navigate(`/order-success/${paymentOrder.orderId}`);
+          }
+
+           catch (error: any) {
+    console.error(
+      "Payment verification failed:",
+      error
+    );
+
+    const message =
+      error?.response?.data?.message ||
+      error?.message ||
+      "Payment verification failed. Please contact support.";
+
+    setError(message);
+    setPlacingOrder(false);
+  }
+},
+
+      theme : {
+        color : "#000000"
+      },
+
+      modal : {
+        ondismiss : () => {
+          console.log("Razorpay checkout closed");
+          setPlacingOrder(false);
+        },
+      },
+        };
+
+        const razorpay = new window.Razorpay(options);
+        razorpay.open();
+
+      }
+      // navigate(`/order-success/${order.orderId}`);
+      catch(error:any){
+      console.error("Failed to start payment:", error);
+
+      
+    const message =
+      error?.response?.data?.message ||
+      error?.message ||
+      "Failed to start payment. Please try again.";
+
+    setError(message);
+
+    setPlacingOrder(false);
+      }
   };
+
+
 
   if(loading){
     return(
