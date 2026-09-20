@@ -55,6 +55,7 @@ public class OrderServiceImpl implements OrderService {
 
        // Convert every CartItem into OrderItem
         for(CartItem cartItem : cart.getItems()) {
+
             Product product = cartItem.getProduct();
 
             if (product.getActive() == null || !product.getActive()) {
@@ -89,20 +90,13 @@ public class OrderServiceImpl implements OrderService {
 
             totalAmount = totalAmount.add(subtotal);
 
-            product.setStockQuantity(
-                    product.getStockQuantity() - cartItem.getQuantity()
-            );
-
-            productRepository.save(product);
         }
 
             order.setTotalAmount(totalAmount);
 
             Order savedOrder = orderRepository.save(order);
 
-            cart.getItems().clear();
 
-            cartRepository.save(cart);
 
             return mapToOrderResponse(savedOrder);
 
@@ -144,21 +138,24 @@ public class OrderServiceImpl implements OrderService {
                     "Order cannot be cancelled at this stage"
             );
         }
+        if (order.getPaymentStatus() == PaymentStatus.PAID) {
 
-        for(OrderItem orderItem : order.getItems()){
-            Product product = orderItem.getProduct();
+            for (OrderItem orderItem : order.getItems()) {
 
-            product.setStockQuantity(
-                    product.getStockQuantity()+orderItem.getQuantity()
-            );
+                Product product = orderItem.getProduct();
 
-            productRepository.save(product);
+                product.setStockQuantity(
+                        product.getStockQuantity() + orderItem.getQuantity()
+                );
+
+                productRepository.save(product);
+            }
         }
 
         order.setStatus(OrderStatus.CANCELLED);
-        Order savedOrder = orderRepository.save(order);
+        orderRepository.save(order);
 
-        return mapToOrderResponse(savedOrder);
+        return mapToOrderResponse(order);
     }
 
     private User getCurrentUser(){

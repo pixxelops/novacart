@@ -5,6 +5,7 @@ import type { CartResponse } from '../../types/Cart';
 import { createOrder } from '../../services/orderService';
 import { getMyCart } from '../../services/cartService';
 import { createPaymentOrder, verifyPayment } from '../../services/paymentService';
+import { useCart } from '../../context/useCart';
 
 
 
@@ -34,6 +35,8 @@ const IMAGE_BASE_URL = "http://localhost:8080";
   }
 
 const Checkout = () => {
+
+  const { refreshCart } = useCart();
   const navigate = useNavigate();
 
   const [cart, setCart] = useState<CartResponse | null>(null);
@@ -120,6 +123,7 @@ const Checkout = () => {
             });
 
             console.log("Payment verified successfully.");
+            refreshCart();
             navigate(`/order-success/${paymentOrder.orderId}`);
           }
 

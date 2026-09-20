@@ -4,12 +4,8 @@ package com.harsh.ecommerce.service.impl;
 import com.harsh.ecommerce.config.RazorpayConfig;
 import com.harsh.ecommerce.dto.request.PaymentVerificationRequest;
 import com.harsh.ecommerce.dto.response.PaymentOrderResponse;
-import com.harsh.ecommerce.entity.Order;
-import com.harsh.ecommerce.entity.OrderStatus;
-import com.harsh.ecommerce.entity.PaymentStatus;
-import com.harsh.ecommerce.entity.User;
-import com.harsh.ecommerce.repository.OrderRepository;
-import com.harsh.ecommerce.repository.UserRepository;
+import com.harsh.ecommerce.entity.*;
+import com.harsh.ecommerce.repository.*;
 import com.harsh.ecommerce.service.PaymentService;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
@@ -29,6 +25,9 @@ import java.math.BigDecimal;
 public class PaymentServiceImpl implements PaymentService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
+    private final CartRepository cartRepository;
+    private final CartItemRepository cartItemRepository;
+    private final ProductRepository productRepository;
     private final RazorpayConfig razorpayConfig;
 
     @Override
@@ -144,7 +143,7 @@ public class PaymentServiceImpl implements PaymentService {
 
             attributes.put(
                     "razorpay_payment_id",
-                    request.getRazorpaySignature()
+                    request.getRazorpayPaymentId()
             );
             attributes.put(
                     "razorpay_signature",
@@ -164,6 +163,45 @@ public class PaymentServiceImpl implements PaymentService {
             order.setRazorpayPaymentId(
                     request.getRazorpayPaymentId()
             );
+
+            for(OrderItem orderItem : order.getItems()){
+                Product product = orderItem.getProduct();
+
+                if(product.getStockQuantity() < orderItem.getQuantity()){
+                    throw new RuntimeException(
+                            "Insufficient stock for product: " + product.getName()
+                            );
+                }
+
+                product.setStockQuantity(
+                        product.getStockQuantity() - orderItem.getQuantity()
+                );
+                productRepository.save(product);
+            }
+
+
+            Cart cart = cartRepository.findByUserId(user.getId())
+                            .orElseThrow(() -> new RuntimeException("Cart not found"));
+
+            for(OrderItem orderItem : order.getItems()){
+                Long productId = orderItem.getProduct().getId();
+
+                cartItemRepository.findByCartIdAndProductId(
+                        cart.getId(),
+                        productId
+                ).ifPresent(cartItem -> {
+
+                    int remainingQuality = cartItem.getQuantity()
+                            - orderItem.getQuantity();
+
+                    if(remainingQuality <= 0){
+                        cartItemRepository.delete(cartItem);
+                    }else{
+                        cartItem.setQuantity(remainingQuality);
+                        cartItemRepository.save(cartItem);
+                    }
+                });
+            }
 
             order.setPaymentStatus(PaymentStatus.PAID);
             order.setStatus(OrderStatus.CONFIRMED);
