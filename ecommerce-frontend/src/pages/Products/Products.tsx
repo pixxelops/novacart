@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Product } from '../../types/product'
 import { getProducts } from '../../services/productService';
 import { Link } from 'react-router-dom';
@@ -75,7 +75,7 @@ export default function Products(){
                 <div className="grid grid-cols-2 grap-x-5 gap-y-12 md:grid-cols-3 lg:grid-cols-3 lg:grid:cols-4">
                     {Array.from({length:pageSize}).map((_,index) =>(
                         <div key={index} >
-                              <div className="aspect-[4/5] animate-pulse rounded-2xl bg-gray-200" />
+                              <div className="aspect-4/5 animate-pulse rounded-2xl bg-gray-200" />
 
                 <div className="mt-4 h-3 w-20 animate-pulse rounded bg-gray-200" />
 

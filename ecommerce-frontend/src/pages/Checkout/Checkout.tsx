@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { CartResponse } from '../../types/Cart';
 
-import { createOrder } from '../../services/orderService';
+import { createOrder, getOrderById } from '../../services/orderService';
 import { getMyCart } from '../../services/cartService';
 import { createPaymentOrder, verifyPayment } from '../../services/paymentService';
 import { useCart } from '../../context/useCart';
@@ -34,6 +34,8 @@ const IMAGE_BASE_URL = "http://localhost:8080";
     })
   }
 
+
+
 const Checkout = () => {
 
   const { refreshCart } = useCart();
@@ -44,42 +46,77 @@ const Checkout = () => {
   const [placingOrder, setPlacingOrder] = useState(false);
   const [error, setError] = useState("");
 
+  const [searchParams] = useSearchParams();
+  const buyNowOrderId = searchParams.get("buyNowOrderId");
 
-  useEffect(() => {
+useEffect(() => {
 
-   let cancelled = false;
+  let cancelled = false;
 
-   const fetchCart = async() =>{
+  const fetchCheckoutData = async () => {
+
     try {
+      setLoading(true);
+
+      // Buy Now checkout
+      if (buyNowOrderId) {
+
+        const order = await getOrderById(
+          Number(buyNowOrderId)
+        );
+
+        if (!cancelled) {
+          setCart({
+            cartId :0,
+            items: order.items.map((item) => ({
+              productId: item.productId,
+              productName: item.productName,
+              quantity: item.quantity,
+              price: item.price,
+              subtotal: item.subtotal,
+              imageUrls: [],
+            })),
+            totalItems: order.items.reduce(
+              (total, item) => total + item.quantity,
+              0
+            ),
+            totalPrice: order.totalAmount,
+          });
+        }
+
+        return;
+      }
+
+      // Normal cart checkout
       const data = await getMyCart();
-      if(!cancelled){
+
+      if (!cancelled) {
         setCart(data);
       }
-    }
-    catch(error){
-      console.error("Failed to Load up the cart", error);
 
-      if(!cancelled){
-        console.error("Failed to Load up the cart");
+    } catch (error) {
 
-      }
-    }finally{
+      console.error(
+        "Failed to load checkout data:",
+        error
+      );
+
+    } finally {
+
       if (!cancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
+      }
+
     }
+  };
 
-   };
-  
+  fetchCheckoutData();
 
-   fetchCart();
-
-   return () =>{
+  return () => {
     cancelled = true;
-   }
-   
-  }, []);
+  };
 
+}, [buyNowOrderId]);
   const handlePlaceOrder = async() =>{
     if(!cart || cart.items.length === 0){
       return;
@@ -88,11 +125,16 @@ const Checkout = () => {
     try{
       setPlacingOrder(true);
       setError("");
-      const order  = await createOrder();
+      let orderId : number;
 
-      const paymentOrder = await createPaymentOrder(
-        order.orderId
-      );
+      if(buyNowOrderId){
+        orderId = Number(buyNowOrderId);
+      }else{
+        const order = await createOrder();
+        orderId = order.orderId;
+      }
+      const paymentOrder = await createPaymentOrder(orderId);
+
 
       const razorpayLoaded = await loadRazorpayScript();
 
@@ -106,7 +148,7 @@ const Checkout = () => {
         amount : paymentOrder.amount,
         currency : paymentOrder.currency,
         name : "Novacart",
-        description : `Payment for Order #${order.orderId}`,
+        description : `Payment for Order #${orderId}`,
         order_id : paymentOrder.razorpayOrderId,
 
         handler : async(response : RazorpayPaymentResponse) =>{
@@ -116,7 +158,7 @@ const Checkout = () => {
 
 
             await verifyPayment({
-              orderId : order.orderId,
+              orderId : orderId,
               razorpayOrderId : response.razorpay_order_id,
               razorpayPaymentId : response.razorpay_payment_id,
               razorpaySignature : response.razorpay_signature
@@ -124,7 +166,10 @@ const Checkout = () => {
 
             console.log("Payment verified successfully.");
             refreshCart();
-            navigate(`/order-success/${paymentOrder.orderId}`);
+             navigate(
+        `/order-success/${paymentOrder.orderId}`
+      );
+
           }
 
            catch (error: any) {

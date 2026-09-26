@@ -52,4 +52,20 @@ export const cancelOrder = async(
     return response.data;
 }
 
+export const createBuyNowOrder = async(
+    productId : number,
+    quantity : number 
+): Promise<OrderResponse> => {
+    const response = await api.post<OrderResponse>(
+        "/orders/buy-now",
+        {
+            productId,
+            quantity,
+        }
+    );
+
+    return response.data;
+
+}
+
 

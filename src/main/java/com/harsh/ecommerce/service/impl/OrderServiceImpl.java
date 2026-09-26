@@ -103,6 +103,58 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public OrderResponse createBuyNowOrder(Long productId, Integer quantity) {
+        User user = getCurrentUser();
+
+        if(quantity == null || quantity <= 0){
+            throw new RuntimeException("Quantity must be greater than zero");
+        }
+        Product product = productRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
+
+        if(product.getActive() == null || !product.getActive()) {
+            throw new RuntimeException(
+                    "Product is no longer available: "
+                            + product.getName()
+            );
+        }
+            if(product.getStockQuantity() < quantity){
+                throw new RuntimeException(
+                        "Insufficient stock for product: "
+                        + product.getName()
+                );
+            }
+
+            BigDecimal price = product.getPrice();
+
+            BigDecimal subtotal = price.multiply(
+                    BigDecimal.valueOf(quantity)
+            );
+
+            Order order = Order.builder()
+                    .user(user)
+                    .status(OrderStatus.PENDING)
+                    .paymentStatus(PaymentStatus.PENDING)
+                    .totalAmount(subtotal)
+                    .build();
+
+            OrderItem orderItem = OrderItem.builder()
+                    .product(product)
+                    .quantity(quantity)
+                    .price(price)
+                    .subtotal(subtotal)
+                    .order(order).
+                    build();
+
+
+                    order.addItem(orderItem);
+
+                    Order savedOrder = orderRepository.save(order);
+
+                    return mapToOrderResponse(savedOrder);
+        }
+
+
+    @Override
     public List<OrderResponse> getMyOrders() {
         User user = getCurrentUser();
 

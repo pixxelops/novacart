@@ -7,6 +7,9 @@ import java.util.List;
 public interface OrderService {
     OrderResponse createOrder();
 
+    OrderResponse createBuyNowOrder(Long productId, Integer quantity);
+
+
     List<OrderResponse> getMyOrders();
 
     OrderResponse getOrderById(Long orderId);

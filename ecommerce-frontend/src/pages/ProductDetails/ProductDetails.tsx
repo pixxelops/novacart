@@ -5,6 +5,7 @@ import type { Product } from "../../types/product";
 import { getProductById } from "../../services/productService";
 import { useAuth } from "../../context/useAuth";
 import { useCart } from "../../context/useCart";
+import { createBuyNowOrder } from "../../services/orderService";
 
 const API_URL = "http://localhost:8080";
 
@@ -83,6 +84,29 @@ const [cartError, setCartError] = useState("");
     }finally{
       setAddingToCart(false);
       
+    }
+  }
+
+  const handleBuyNow = async() => {
+    if(!isAuthenticated){
+      navigate("/login");
+      return;
+    }
+
+    if(!product || product.stockQuantity <=0){
+      return;
+    }
+
+    try{
+      setCartError("");
+
+      const order = await createBuyNowOrder(product.id,quantity);
+
+      navigate(`/checkout?buyNowOrderId=${order.orderId}`);
+    }
+    catch(error){
+      console.error("Failed to create buy now order : ", error);
+      setCartError("Failed to create order. Please try again");
     }
   }
 
@@ -354,6 +378,8 @@ const [cartError, setCartError] = useState("");
               )}
 
               <button
+              type = "button"
+              onClick={handleBuyNow}
                 disabled={product.stockQuantity === 0}
                 className="flex-1 rounded-full border border-gray-300 bg-white px-7 py-4 text-sm font-semibold text-gray-900 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
               >

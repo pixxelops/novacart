@@ -1,5 +1,6 @@
 package com.harsh.ecommerce.controller;
 
+import com.harsh.ecommerce.dto.request.BuyNowRequest;
 import com.harsh.ecommerce.dto.response.OrderResponse;
 import com.harsh.ecommerce.entity.Order;
 import com.harsh.ecommerce.service.OrderService;
@@ -47,6 +48,22 @@ public class OrderController {
         return  ResponseEntity.ok(
                 orderService.cancelOrder(orderId)
         );
+    }
+
+    @PostMapping("/buy-now")
+    public ResponseEntity<OrderResponse> buyNow(
+            @RequestBody BuyNowRequest request
+            ){
+
+        OrderResponse order = orderService.createBuyNowOrder(
+                request.getProductId(),
+                request.getQuantity()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(order);
+
     }
 
 
