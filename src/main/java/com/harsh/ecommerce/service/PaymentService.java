@@ -8,4 +8,7 @@ public interface PaymentService {
      PaymentOrderResponse createPaymentOrder(Long orderId);
 
      void verifyPayment(PaymentVerificationRequest request);
+
+     void markPaymentFailed(Long orderId);
+
 }

@@ -42,12 +42,14 @@ public class PaymentServiceImpl implements PaymentService {
             throw new RuntimeException("Payment cannot be initiated for this order");
         }
 
-        if (order.getPaymentStatus()
-                != PaymentStatus.PENDING) {
-
+        if (order.getPaymentStatus() == PaymentStatus.PAID) {
             throw new RuntimeException(
                     "Payment has already been processed for this order"
             );
+        }
+
+        if (order.getPaymentStatus() == PaymentStatus.FAILED) {
+            order.setPaymentStatus(PaymentStatus.PENDING);
         }
 
         //get amount directly from database
@@ -214,6 +216,25 @@ public class PaymentServiceImpl implements PaymentService {
                     e
             );
         }
+    }
+
+    @Override
+    public void markPaymentFailed(Long orderId) {
+        User user = getCurrentUser();
+
+        Order order = orderRepository.findByIdAndUser(orderId,user)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (order.getPaymentStatus() == PaymentStatus.PAID) {
+            throw new RuntimeException(
+                    "Payment has already been processed for this order"
+            );
+        }
+
+
+        order.setPaymentStatus(PaymentStatus.FAILED);
+        orderRepository.save(order);
+
     }
 
     private User getCurrentUser() {

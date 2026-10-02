@@ -4,7 +4,7 @@ import type { CartResponse } from '../../types/Cart';
 
 import { createOrder, getOrderById } from '../../services/orderService';
 import { getMyCart } from '../../services/cartService';
-import { createPaymentOrder, verifyPayment } from '../../services/paymentService';
+import { createPaymentOrder, markPaymentFailed, verifyPayment } from '../../services/paymentService';
 import { useCart } from '../../context/useCart';
 
 
@@ -193,9 +193,21 @@ useEffect(() => {
       },
 
       modal : {
-        ondismiss : () => {
+        ondismiss : async() => {
           console.log("Razorpay checkout closed");
-          setPlacingOrder(false);
+
+          try{
+            await markPaymentFailed(orderId);
+             console.log("Payment marked as failed.");
+          }catch(error){
+              console.error(
+        "Failed to mark payment as failed:",
+        error
+      );
+          }finally{
+            setPlacingOrder(false);
+          }
+         
         },
       },
         };

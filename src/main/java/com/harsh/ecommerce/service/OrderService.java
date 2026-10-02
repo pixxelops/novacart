@@ -16,4 +16,11 @@ public interface OrderService {
 
     OrderResponse cancelOrder(Long orderId);
 
+
+    void shipOrder(Long orderId);
+
+    void deliverOrder(Long orderId);
+
+
+
 }

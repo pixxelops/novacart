@@ -30,4 +30,15 @@ public class PaymentController {
 
         return ResponseEntity.ok().build();
     }
+
+
+    @PostMapping("/failed/{orderId}")
+    public ResponseEntity<Void> markPaymentFailed(
+            @PathVariable Long orderId
+    ) {
+
+        paymentService.markPaymentFailed(orderId);
+
+        return ResponseEntity.ok().build();
+    }
 }

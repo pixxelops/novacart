@@ -210,6 +210,51 @@ public class OrderServiceImpl implements OrderService {
         return mapToOrderResponse(order);
     }
 
+    @Override
+    public void shipOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(
+                ()-> new RuntimeException("Order not found")
+        );
+
+        if(order.getPaymentStatus() != PaymentStatus.PAID){
+            throw new RuntimeException("Cannot ship an unpaid order");
+        }
+
+
+        if(order.getStatus() != OrderStatus.CONFIRMED){
+            throw new RuntimeException("Only confirmed orders can be shipped");
+        }
+
+        order.setStatus(OrderStatus.SHIPPED);
+        orderRepository.save(order);
+    }
+
+    @Override
+    public void deliverOrder(Long orderId) {
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() ->
+                        new RuntimeException("Order not found")
+                );
+
+        if (order.getPaymentStatus() != PaymentStatus.PAID) {
+            throw new RuntimeException(
+                    "Only paid orders can be delivered"
+            );
+        }
+
+        if (order.getStatus() != OrderStatus.SHIPPED) {
+            throw new RuntimeException(
+                    "Only shipped orders can be delivered"
+            );
+        }
+
+        order.setStatus(OrderStatus.DELIVERED);
+
+        orderRepository.save(order);
+
+    }
+
     private User getCurrentUser(){
         Authentication authentication = SecurityContextHolder
                 .getContext()

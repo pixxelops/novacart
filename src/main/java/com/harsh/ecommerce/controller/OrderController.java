@@ -7,6 +7,7 @@ import com.harsh.ecommerce.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -64,6 +65,27 @@ public class OrderController {
                 .status(HttpStatus.CREATED)
                 .body(order);
 
+    }
+
+
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{orderId}/ship")
+    public ResponseEntity<Void> shipOrder(
+            @PathVariable Long orderId
+    ){
+        orderService.shipOrder(orderId);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{orderId}/deliver")
+    public ResponseEntity<Void>deliverOrder(
+            @PathVariable Long orderId
+    ){
+        orderService.deliverOrder(orderId);
+        return ResponseEntity.ok().build();
     }
 
 

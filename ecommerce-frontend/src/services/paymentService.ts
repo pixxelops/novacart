@@ -30,3 +30,11 @@ export const verifyPayment = async (
 ): Promise<void> => {
   await api.post("/payments/verify", data);
 };
+
+
+export const markPaymentFailed = async(
+  orderId:number
+
+):Promise<void> =>{
+   await api.post(`/payments/failed/${orderId}`); 
+}
