@@ -89,5 +89,14 @@ public class OrderController {
     }
 
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin")
+    public ResponseEntity<List<OrderResponse>>getAllOrders(){
+        return ResponseEntity.ok(
+                orderService.getAllOrders()
+        );
+    }
+
+
 
 }

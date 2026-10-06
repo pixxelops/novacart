@@ -255,6 +255,22 @@ public class OrderServiceImpl implements OrderService {
 
     }
 
+    @Override
+    public List<OrderResponse> getAllOrders() {
+       List<Order>orders = orderRepository.findAll()
+               .stream()
+               .sorted(
+                       (order1,order2) ->
+                               order2.getCreatedAt().compareTo(
+                                       order1.getCreatedAt()
+                               )
+               ).toList();
+
+
+
+       return orders.stream().map(this::mapToOrderResponse).toList();
+    }
+
     private User getCurrentUser(){
         Authentication authentication = SecurityContextHolder
                 .getContext()

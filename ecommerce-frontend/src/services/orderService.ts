@@ -13,6 +13,7 @@ export interface OrderResponse {
   userId: number;
   totalAmount: number;
   status: string;
+    paymentStatus: string;
   createdAt: string;
   updatedAt: string;
   items: OrderItemResponse[];
@@ -67,5 +68,33 @@ export const createBuyNowOrder = async(
     return response.data;
 
 }
+
+export const shipOrder = async(
+    orderId : number
+): Promise<OrderResponse> =>{
+    const response = await api.put<OrderResponse>(
+        `/orders/${orderId}/ship`
+    );
+
+    return response.data;
+}
+
+export const deliverOrder = async(
+    orderId : number
+): Promise<OrderResponse> =>{
+    const response = await api.put<OrderResponse>(
+        `/orders/${orderId}/deliver`
+    );
+
+    return response.data;
+}
+export const getAllOrders = async(): Promise<OrderResponse[]> =>{
+    const response = await api.get<OrderResponse[]>("/orders/admin");
+
+    return response.data;
+}
+
+
+
 
 

@@ -22,5 +22,8 @@ public interface OrderService {
     void deliverOrder(Long orderId);
 
 
+    List<OrderResponse> getAllOrders();
+
+
 
 }
