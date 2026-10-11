@@ -3,7 +3,7 @@ import { useAuth } from "../../context/useAuth";
 import { useCart } from "../../context/useCart";
 
 export default function Navbar() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, isAdmin, logout } = useAuth();
 
   const {cartItemCount} = useCart();
   const navigate = useNavigate();
@@ -96,6 +96,18 @@ export default function Navbar() {
     >
       Orders
     </Link>
+
+    {isAdmin && (
+      <Link
+      to ="/admin/products"
+      className ="hidden text-sm font-medium text-gray-600 transition hover:text-black md:block"
+      >
+        Admin Products
+        </Link>
+
+    )}
+
+
               {/* Account */}
               <Link
                 to="/account"

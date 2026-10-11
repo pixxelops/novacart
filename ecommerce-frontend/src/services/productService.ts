@@ -2,6 +2,49 @@ import type { Product, ProductPage } from "../types/product";
 import api from "./api";
 
 
+export interface ProductRequest{
+    name:string;
+    description:string;
+    brand: string;
+    price: number;
+    stockQuantity:number;
+    discountPercentage?:number;
+    categoryId:number;
+}
+
+
+export async function createProduct(
+    request:ProductRequest
+): Promise<Product>{
+
+    const response = await api.post<Product>(
+        "/products",
+        request
+    );
+
+    return response.data;
+
+}
+
+export async function updateProduct(
+    productId:number,
+    request:ProductRequest
+): Promise<Product>{
+    const response = await api.put<Product>(
+        `/products/${productId}`,
+        request
+    );
+
+    return response.data;
+}
+
+export async function deleteProduct(
+    productId:number
+): Promise<void>{
+    await api.delete(`/products/${productId}`);
+}
+
+
 export async function getProducts(
     page : number = 0,
 size : number = 8,

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/layout/Navbar";
 import Home from "./pages/Home/Home";
 import Products from "./pages/Products/Products";
@@ -11,8 +11,28 @@ import Checkout from "./pages/Checkout/Checkout";
 import OrderSuccess from "./pages/OrderSuccess/OrderSuccess";
 import Orders from "./pages/Orders/Orders";
 import OrderDetails from "./pages/OrderDetails/OrderDetails";
+import AdminProducts from "./pages/admin/AdminProducts";
+import { useAuth } from "./context/useAuth";
 
 
+
+function AdminProductsRoute(){
+  const {isAuthenticated, isAdmin} = useAuth();
+
+
+  if(!isAuthenticated){
+    return <Navigate to= "/login" replace />
+    
+  }
+
+
+  if (!isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <AdminProducts />;
+  
+}
 
 function App() {
   return (
@@ -51,16 +71,33 @@ function App() {
   element={<OrderDetails />}
 />
 <Route path="/account" element={<div>Account</div>} />
+
+
+  <Route 
+  path = "/admin/products"
+  element = {
+    <AdminProductsRoute/>
+  }
+  />
       </Routes>
     </BrowserRouter>
       </CartProvider>
       
    
     </AuthProvider>
+
+
+
+
     
   );
 
 
-}
+
+
+  }
+
+
+
 
 export default App;
