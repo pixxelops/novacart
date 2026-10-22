@@ -71,3 +71,21 @@ export async function getProductById(id:number):Promise<Product>{
 
     return response.data;
 }
+
+export async function uploadProductImages(
+    productId:number,
+    files:File[]
+):Promise<string>{
+    const formData = new FormData();
+
+    files.forEach((file) => {
+        formData.append("files", file);
+    });
+
+    const response = await api.post<string>(
+        `/products/${productId}/images`,
+        formData
+    );
+
+    return response.data;
+}

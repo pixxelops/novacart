@@ -7,7 +7,8 @@ export interface Product {
   stockQuantity: number;
   discountPercentage: number;
   active: boolean;
-  categoryName: string;
+categoryId: number;
+categoryName: string;
   imageUrls: string[];
 }
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Product } from "../../types/product";
-import { createProduct, deleteProduct, getProducts, updateProduct, type ProductRequest } from "../../services/productService";
+import { createProduct, deleteProduct, getProducts, updateProduct, uploadProductImages, type ProductRequest } from "../../services/productService";
 import { getCategories, type Category } from "../../services/categoryService";
 
 export default function AdminProducts(){
@@ -13,6 +13,8 @@ export default function AdminProducts(){
     const [showForm, setShowForm] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [categories, setCategories] = useState<Category[]>([]);
+
+    const[selectedImages, setSelectedImages] = useState<File[]>([]);
 
 
     const[form, setForm] = useState<ProductRequest>({
@@ -66,11 +68,12 @@ export default function AdminProducts(){
       };
 
       void fetchCategories();
-    });
+    }, []);
 
 
   const handleAddProduct = ()=> {
     setEditingProduct(null);
+    setSelectedImages([]);
 
     setForm({
       name : "",
@@ -87,6 +90,7 @@ export default function AdminProducts(){
 
   const handleEditProduct =(product:Product) =>{
     setEditingProduct(product);
+    setSelectedImages([]);
 
     setForm({
       name : product.name,
@@ -95,7 +99,7 @@ export default function AdminProducts(){
       price : product.price,
       stockQuantity : product.stockQuantity,
       discountPercentage: product.discountPercentage,
-      categoryId : 0,
+      categoryId : product.categoryId,
     });
 
     setShowForm(true);
@@ -146,38 +150,47 @@ export default function AdminProducts(){
     };
 
 
-    const handleSubmit = async() =>{
+    const handleSubmit = async(e:React.FormEvent) =>{
+      e.preventDefault();
       try{
-        setError("");
+        let savedProduct: Product;
 
-        if(
-           !form.name.trim() ||
-      !form.description.trim() ||
-      !form.brand.trim() ||
-      form.categoryId <= 0 ||
-      form.price < 0 ||
-      form.stockQuantity < 0 ||
-      form.discountPercentage < 0 ||
-      form.discountPercentage > 100
-        ){
-          setError("Please enter valid product details and select a category.");
-      return;
-        }
+
+      //   setError("");
+
+      //   if(
+      //      !form.name.trim() ||
+      // !form.description.trim() ||
+      // !form.brand.trim() ||
+      // form.categoryId <= 0 ||
+      // form.price < 0 ||
+      // form.stockQuantity < 0 ||
+      // form.discountPercentage < 0 ||
+      // form.discountPercentage > 100
+      //   ){
+      //     setError("Please enter valid product details and select a category.");
+      // return;
+      //   }
 
 
         if(editingProduct){
-          await updateProduct(editingProduct.id, form);
+          savedProduct = await updateProduct(editingProduct.id, form);
         }
         else{
-          await createProduct(form);
+          savedProduct = await createProduct(form);
         }
 
+        if(selectedImages.length > 0){
+          await uploadProductImages(savedProduct.id, selectedImages);
+        }
+
+        setSelectedImages([]);
         setShowForm(false);
         setEditingProduct(null);
         await fetchProducts();
       }catch(error){
         console.error("Failed to save product: ", error);
-        setError("Failed to save product. Please try again. ");
+     
 
       }
     }
@@ -389,6 +402,29 @@ export default function AdminProducts(){
             className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-black"
             placeholder="Enter product description"
           />
+        </div>
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Product Images
+          </label>
+
+          <input
+           type = "file"
+           accept="image/*"
+           multiple
+           onChange={(e) =>
+            setSelectedImages(Array.from(e.target.files ?? []))
+           }
+
+           className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-700"/>
+
+           {selectedImages.length > 0 && (
+            <p className="mt-2 text-sm text-gray-500">
+              {selectedImages.length} images(s) selected
+            </p>
+           )}
+
         </div>
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">

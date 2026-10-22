@@ -49,6 +49,11 @@ public class SecurityConfig {
                                 "/api/categories/**",
                                 "/uploads/**"
                         ).permitAll()
+                        .requestMatchers(
+                                "/api/products/**",
+                                "/api/categories/**",
+                                "/api/roles/**"
+                        ).hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(
