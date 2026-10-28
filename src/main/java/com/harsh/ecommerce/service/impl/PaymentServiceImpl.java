@@ -7,6 +7,7 @@ import com.harsh.ecommerce.dto.response.PaymentOrderResponse;
 import com.harsh.ecommerce.entity.*;
 import com.harsh.ecommerce.repository.*;
 import com.harsh.ecommerce.service.PaymentService;
+import com.razorpay.Payment;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 import com.razorpay.Utils;
@@ -122,7 +123,8 @@ public class PaymentServiceImpl implements PaymentService {
     public void verifyPayment(PaymentVerificationRequest request) {
         User user  = getCurrentUser();
 
-        Order order = orderRepository.findByIdAndUser(request.getOrderId(),user)
+        Order order = orderRepository
+                .findByIdAndUserWithLock(request.getOrderId(), user)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
         if(order.getPaymentStatus() == PaymentStatus.PAID){
@@ -132,10 +134,15 @@ public class PaymentServiceImpl implements PaymentService {
         if(order.getRazorpayOrderId() == null || !order.getRazorpayOrderId()
                 .equals(request.getRazorpayOrderId())){
             throw new RuntimeException("Invalid Razorpay order ID");
-
         }
 
         try{
+
+            RazorpayClient razorpayClient = new RazorpayClient(
+                    razorpayConfig.getKeyId(),
+                    razorpayConfig.getKeySecret()
+            );
+
             JSONObject attributes = new JSONObject();
 
             attributes.put(
@@ -161,13 +168,43 @@ public class PaymentServiceImpl implements PaymentService {
             if(!signatureValid){
                 throw new RuntimeException("Payment signature verification failed");
             }
+            Payment razorpayPayment = razorpayClient.payments.fetch(request.getRazorpayPaymentId());
+
+            if(!"captured".equals(razorpayPayment.get("status"))){
+                throw new RuntimeException("Payment status is not captured");
+            }
+
+            if(!request.getRazorpayOrderId().equals(
+                    razorpayPayment.get("order_id")
+            )){
+                throw new  RuntimeException("Payment order Id mismatch");
+            }
+
+            long expectedAmountInPaise = order.getTotalAmount().multiply(BigDecimal.valueOf(100))
+                            .longValueExact();
+
+
+            long actualAmountInPaise = ((Number) razorpayPayment.get("amount"))
+                    .longValue();
+
+
+            if (actualAmountInPaise != expectedAmountInPaise) {
+                throw new RuntimeException("Payment amount mismatch");
+            }
+
+            if (!"INR".equals(razorpayPayment.get("currency"))) {
+                throw new RuntimeException("Payment currency mismatch");
+            }
+
 
             order.setRazorpayPaymentId(
                     request.getRazorpayPaymentId()
             );
 
             for(OrderItem orderItem : order.getItems()){
-                Product product = orderItem.getProduct();
+                Product product = productRepository
+                        .findByIdWithLock(orderItem.getProduct().getId())
+                        .orElseThrow(()-> new RuntimeException("Product not found"));
 
                 if(product.getStockQuantity() < orderItem.getQuantity()){
                     throw new RuntimeException(
