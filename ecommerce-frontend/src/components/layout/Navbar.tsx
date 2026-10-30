@@ -1,141 +1,50 @@
+import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import { useCart } from "../../context/useCart";
 
+
 export default function Navbar() {
   const { isAuthenticated, isAdmin, logout } = useAuth();
-
-  const {cartItemCount} = useCart();
+  const { cartItemCount } = useCart();
   const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
+  const closeMenu = () => setMobileOpen(false);
+  const handleLogout = () => { logout(); closeMenu(); navigate("/"); };
+
+  const submitSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const query = search.trim();
+    if (query) navigate(`/products?search=${encodeURIComponent(query)}`);
+    else navigate("/products");
+    closeMenu();
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur">
-      <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
-        
-        {/* Logo */}
-        <Link
-          to="/"
-          className="text-2xl font-black tracking-tight text-gray-950"
-        >
-          Nova<span className="text-gray-500">Cart</span>
-        </Link>
-
-        {/* Navigation */}
-        <div className="hidden items-center gap-8 md:flex">
-          <Link
-            to="/"
-            className="text-sm font-medium text-gray-600 transition hover:text-black"
-          >
-            Home
-          </Link>
-
-          <Link
-            to="/products"
-            className="text-sm font-medium text-gray-600 transition hover:text-black"
-          >
-            Shop
-          </Link>
-
-          <Link
-            to="/categories"
-            className="text-sm font-medium text-gray-600 transition hover:text-black"
-          >
-            Categories
-          </Link>
-        </div>
-
-        {/* Search */}
-        <div className="hidden w-80 lg:block">
-          <div className="flex items-center rounded-full border border-gray-200 bg-gray-50 px-4 py-2.5 transition focus-within:border-gray-400 focus-within:bg-white">
-            <span className="mr-3 text-gray-400">⌕</span>
-
-            <input
-              type="text"
-              placeholder="Search products..."
-              className="w-full bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400"
-            />
+    <>
+      <div className="nc-topline"><span>A little something good, delivered.</span><span>THOUGHTFUL FINDS. EVERYDAY JOY. <b aria-hidden="true">↗</b></span></div>
+      <header className="nc-nav">
+        <nav className="nc-nav__inner" aria-label="Main navigation">
+          <button type="button" className="nc-nav__mobile-toggle" aria-label={mobileOpen ? "Close menu" : "Open menu"} aria-expanded={mobileOpen} onClick={() => setMobileOpen(value => !value)}>{mobileOpen ? "×" : "☰"}</button>
+          <Link to="/" className="nc-wordmark" onClick={closeMenu}>nova<span>cart</span><i aria-hidden="true">✳</i></Link>
+          <div className="nc-nav__links">
+            <Link to="/">Discover</Link><Link to="/products">Shop all</Link><Link to="/#new-arrivals">The edit</Link>
+            {isAdmin && <Link to="/admin/products">Studio <span className="nc-admin-pill">ADMIN</span></Link>}
           </div>
-        </div>
-
-        {/* Right side */}
-        <div className="flex items-center gap-5">
-          {/* Wishlist */}
-          <button
-            type="button"
-            className="text-xl text-gray-600 transition hover:text-black"
-            aria-label="Wishlist"
-          >
-            ♡
-          </button>
-
-          {/* Cart */}
-          <Link
-            to="/cart"
-            className="relative text-xl text-gray-600 transition hover:text-black"
-            aria-label="Shopping cart"
-          >
-            🛒
-
-            <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-black px-1 text-[10px] font-bold text-white">
-               {cartItemCount > 99 ? "99+" : cartItemCount}
-            </span>
-          </Link>
-
-          {isAuthenticated ? (
-            <>
-
-             {/* Orders */}
-    <Link
-      to="/orders"
-      className="hidden text-sm font-medium text-gray-600 transition hover:text-black md:block"
-    >
-      Orders
-    </Link>
-
-    {isAdmin && (
-      <Link
-      to ="/admin/products"
-      className ="hidden text-sm font-medium text-gray-600 transition hover:text-black md:block"
-      >
-        Admin Products
-        </Link>
-
-    )}
-
-
-              {/* Account */}
-              <Link
-                to="/account"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 bg-gray-100 text-sm font-semibold text-gray-700 transition hover:border-black hover:bg-white"
-                aria-label="Account"
-              >
-                A
-              </Link>
-
-              {/* Logout */}
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="hidden text-sm font-medium text-gray-600 transition hover:text-black sm:block"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <Link
-              to="/login"
-              className="rounded-full bg-black px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800"
-            >
-              Login
-            </Link>
-          )}
-        </div>
-      </nav>
-    </header>
+          <form className="nc-nav__search" onSubmit={submitSearch} role="search">
+            <span aria-hidden="true">⌕</span><input aria-label="Search products" value={search} onChange={event => setSearch(event.target.value)} placeholder="Find something good..." /><button aria-label="Submit search" type="submit">↗</button>
+          </form>
+          <div className="nc-nav__tools">
+            {isAuthenticated ? <Link to="/orders" className="nc-nav__orders">Orders</Link> : <Link to="/login" className="nc-nav__login">Sign in <span aria-hidden="true">↗</span></Link>}
+            <Link to="/cart" className="nc-nav__bag" aria-label={`Shopping bag, ${cartItemCount} items`}><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M5.5 8.5h13l1 12h-15l1-12Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="M9 8.5V6a3 3 0 0 1 6 0v2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg><b>{cartItemCount > 99 ? "99+" : cartItemCount}</b></Link>
+            {isAuthenticated && <Link to="/account" className="nc-nav__account" aria-label="Account">A</Link>}
+            {isAuthenticated && <button type="button" onClick={handleLogout} className="nc-nav__logout">Logout</button>}
+          </div>
+        </nav>
+        {mobileOpen && <div className="nc-mobile-menu"><Link to="/" onClick={closeMenu}>Discover <span>↗</span></Link><Link to="/products" onClick={closeMenu}>Shop all <span>↗</span></Link><Link to="/#new-arrivals" onClick={closeMenu}>The edit <span>↗</span></Link>{isAuthenticated && <Link to="/orders" onClick={closeMenu}>Your orders <span>↗</span></Link>}{isAdmin && <Link to="/admin/products" onClick={closeMenu}>Admin studio <span>↗</span></Link>}{!isAuthenticated && <Link to="/login" onClick={closeMenu}>Sign in <span>↗</span></Link>}{isAuthenticated && <button type="button" onClick={handleLogout}>Log out <span>↗</span></button>}<form className="nc-mobile-search" onSubmit={submitSearch}><span aria-hidden="true">⌕</span><input aria-label="Search products" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search the collection" /></form></div>}
+      </header>
+    </>
   );
 }

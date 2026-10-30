@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Navbar from "./components/layout/Navbar";
 import Home from "./pages/Home/Home";
 import Products from "./pages/Products/Products";
 import ProductDetails from "./pages/ProductDetails/ProductDetails";
@@ -13,6 +12,7 @@ import Orders from "./pages/Orders/Orders";
 import OrderDetails from "./pages/OrderDetails/OrderDetails";
 import AdminProducts from "./pages/admin/AdminProducts";
 import { useAuth } from "./context/useAuth";
+import Navbar from "./components/layout/Navbar";
 
 
 

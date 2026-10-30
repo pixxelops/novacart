@@ -2,192 +2,94 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import type { Product } from "../../types/product";
-import { getProducts } from "../../services/productService";
+
 import ProductCard from "../Products/ProductCard";
+import { getProducts } from "../../services/productService";
+
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080").replace(/\/$/, "");
 
 export default function Home() {
-
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    let active = true;
 
     async function loadProducts() {
-
       try {
-
         setLoading(true);
-
+        setError("");
         const data = await getProducts(0, 8, "id", "desc");
-
-        setProducts(data.content);
-
-      } catch (error) {
-
-        console.error(error);
-
-        setError("Unable to load products.");
-
+        if (active) setProducts(data.content);
+      } catch (err) {
+        console.error(err);
+        if (active) setError("We couldn't load the latest products. Please try again in a moment.");
       } finally {
-
-        setLoading(false);
-
+        if (active) setLoading(false);
       }
     }
 
-    loadProducts();
-
+    void loadProducts();
+    return () => { active = false; };
   }, []);
 
+  const featured = products[0];
+  const heroImage = featured?.imageUrls?.[0] ? `${API_BASE_URL}${featured.imageUrls[0]}` : null;
+
   return (
-    <main className="bg-[#faf9f6]">
-
-      {/* Hero */}
-      <section className="border-b border-gray-200 bg-[#f1efe9]">
-
-        <div className="mx-auto grid min-h-[620px] max-w-7xl items-center gap-12 px-6 py-20 lg:grid-cols-2">
-
-          <div>
-
-            <p className="mb-5 text-xs font-semibold uppercase tracking-[0.3em] text-gray-500">
-              The everyday edit
-            </p>
-
-            <h1 className="max-w-2xl text-6xl font-black leading-[0.95] tracking-tight text-gray-950 sm:text-7xl">
-              Products worth
-              <span className="block italic font-medium">
-                keeping.
-              </span>
-            </h1>
-
-            <p className="mt-7 max-w-lg text-lg leading-8 text-gray-600">
-              Discover thoughtfully selected products for work, home,
-              technology and everyday life.
-            </p>
-
-            <Link
-              to="/products"
-              className="mt-9 inline-flex rounded-full bg-black px-7 py-3.5 text-sm font-semibold text-white transition hover:bg-gray-800"
-            >
-              Explore collection →
-            </Link>
-
+    <main className="nc-home">
+      <section className="nc-hero">
+        <div className="nc-hero__grain" aria-hidden="true" />
+        <div className="nc-hero__copy">
+          <div className="nc-eyebrow"><span className="nc-eyebrow__dot" /> THE GOOD FINDS CLUB <span className="nc-eyebrow__edition">— VOL. 01</span></div>
+          <h1>Everyday things.<br /><em>Extraordinary</em><br />feeling.</h1>
+          <p className="nc-hero__description">A considered collection of technology, essentials and little upgrades that make daily life better.</p>
+          <div className="nc-hero__actions">
+            <Link to="/products" className="nc-button nc-button--lime">Explore the collection <span aria-hidden="true">↗</span></Link>
+            <a href="#new-arrivals" className="nc-text-link">See what’s new <span aria-hidden="true">↘</span></a>
           </div>
-
-          {/* Editorial visual */}
-          <div className="relative hidden lg:block">
-
-            <div className="aspect-[4/5] overflow-hidden rounded-[2rem] bg-[#ddd9d0]">
-
-              {products[0]?.imageUrls?.[0] ? (
-                <img
-                  src={`http://localhost:8080${products[0].imageUrls[0]}`}
-                  alt={products[0].name}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center text-gray-500">
-                  NovaCart
-                </div>
-              )}
-
-            </div>
-
-            {products[0] && (
-              <div className="absolute -bottom-6 -left-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-xl">
-
-                <p className="text-xs uppercase tracking-widest text-gray-500">
-                  Featured
-                </p>
-
-                <p className="mt-1 font-semibold text-gray-900">
-                  {products[0].name}
-                </p>
-
-              </div>
-            )}
-
-          </div>
-
+          <div className="nc-hero__meta"><span><strong>01</strong> / THE EVERYDAY EDIT</span><span>MADE FOR YOUR EVERY DAY</span></div>
         </div>
 
+        <div className="nc-hero__visual">
+          <div className="nc-hero__image-frame">
+            {heroImage ? <img src={heroImage} alt={featured?.name ?? "Featured NovaCart product"} /> : <div className="nc-hero__image-placeholder"><span className="nc-placeholder-star">✳</span><span>YOUR NEXT<br />FAVOURITE THING</span></div>}
+            <div className="nc-hero__image-wash" />
+            <span className="nc-hero__vertical-label">OBJECTS OF EVERYDAY WONDER</span>
+          </div>
+          <div className="nc-sticker" aria-label="Good things"><span>GOOD<br />THINGS</span><b>✳</b></div>
+          {featured && <Link to={`/products/${featured.id}`} className="nc-featured-note"><span className="nc-featured-note__copy"><span className="nc-featured-note__label">THE ONE TO KNOW</span><span className="nc-featured-note__name">{featured.name}</span></span><span aria-hidden="true">↗</span></Link>}
+          <div className="nc-hero__orbit" aria-hidden="true">N<span>✳</span>C</div>
+        </div>
+        <div className="nc-hero__bottom"><span>CURIOUS BY NATURE. BETTER BY DESIGN.</span><a href="#new-arrivals">SCROLL TO DISCOVER ↓</a></div>
       </section>
 
-      {/* New arrivals */}
-      <section className="mx-auto max-w-7xl px-6 py-20">
+      <section className="nc-benefits" aria-label="Shopping benefits">
+        <div><span className="nc-benefit-icon" aria-hidden="true">↗</span><span><strong>Delivery made easy</strong><small>From our store to your door</small></span></div>
+        <div><span className="nc-benefit-icon" aria-hidden="true">◇</span><span><strong>Checkout with confidence</strong><small>Secure Razorpay payments</small></span></div>
+        <div><span className="nc-benefit-icon" aria-hidden="true">↻</span><span><strong>Here for the long run</strong><small>Support when you need it</small></span></div>
+      </section>
 
-        <div className="mb-10 flex items-end justify-between">
-
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
-              Fresh picks
-            </p>
-
-            <h2 className="mt-2 text-4xl font-bold tracking-tight text-gray-950">
-              New arrivals
-            </h2>
-          </div>
-
-          <Link
-            to="/products"
-            className="hidden text-sm font-semibold text-gray-700 underline underline-offset-4 sm:block"
-          >
-            View all
-          </Link>
-
+      <section className="nc-arrivals" id="new-arrivals">
+        <div className="nc-section-heading">
+          <div><p className="nc-kicker">A LITTLE SOMETHING NEW</p><h2>Find your <em>favourite.</em></h2><p className="nc-section-copy">Thoughtful picks for your desk, your downtime and everywhere in between.</p></div>
+          <Link to="/products" className="nc-view-all">Shop all products <span aria-hidden="true">↗</span></Link>
         </div>
 
-        {/* Loading */}
-        {loading && (
-          <div className="grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
-
-            {Array.from({ length: 8 }).map((_, index) => (
-              <div key={index}>
-
-                <div className="aspect-[4/5] animate-pulse rounded-2xl bg-gray-200" />
-
-                <div className="mt-4 h-3 w-20 animate-pulse rounded bg-gray-200" />
-
-                <div className="mt-2 h-5 w-40 animate-pulse rounded bg-gray-200" />
-
-              </div>
-            ))}
-
-          </div>
-        )}
-
-        {/* Error */}
-        {!loading && error && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-red-700">
-            {error}
-          </div>
-        )}
-
-        {/* Products */}
-        {!loading && !error && (
-          <>
-            {products.length === 0 ? (
-              <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center">
-                No products available yet.
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-x-5 gap-y-12 md:grid-cols-3 lg:grid-cols-4">
-
-                {products.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                  />
-                ))}
-
-              </div>
-            )}
-          </>
-        )}
-
+        {loading && <div className="nc-product-grid">{Array.from({ length: 8 }).map((_, i) => <div className="nc-skeleton" key={i}><div /><span /><span /></div>)}</div>}
+        {!loading && error && <div className="nc-state-message">{error} <Link to="/products">Browse all products →</Link></div>}
+        {!loading && !error && products.length === 0 && <div className="nc-state-message">The shelves are getting ready. Check back soon for our latest finds.</div>}
+        {!loading && !error && products.length > 0 && <div className="nc-product-grid">{products.slice(0, 8).map(product => <ProductCard key={product.id} product={product} />)}</div>}
       </section>
 
+      <section className="nc-manifesto">
+        <div className="nc-manifesto__mark" aria-hidden="true">✳</div>
+        <p className="nc-kicker">A NOTE FROM NOVACART</p>
+        <h2>Less scrolling.<br /><em>More discovering.</em></h2>
+        <p>Good design isn’t just how something looks. It’s how it fits into your life. We’re here to make the everyday a little more interesting, one good find at a time.</p>
+        <Link to="/products" className="nc-button nc-button--dark">Find your next favourite <span aria-hidden="true">↗</span></Link>
+      </section>
     </main>
   );
 }
