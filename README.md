@@ -1,3 +1,4 @@
+
 # NovaCart — Full-Stack E-commerce
 
 NovaCart is a full-stack shopping application built with **Spring Boot, React, TypeScript, and MySQL**. It brings together customer shopping flows, role-based administration, and Razorpay checkout with server-side payment verification.
