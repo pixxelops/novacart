@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { deliverOrder, getAllOrders, getMyOrder, shipOrder, type OrderResponse } from "../../services/orderService";
-import type { StdioNull } from "node:child_process";
+import { deliverOrder, getAllOrders, shipOrder, type OrderResponse } from "../../services/orderService";
 
 export default function AdminOrders(){
 
