@@ -30,12 +30,12 @@ private final FileStorageService fileStorageService;
 
 
         for(MultipartFile file : files){
-            String fileName = fileStorageService.uploadFile(file);
+            String imageUrl = fileStorageService.uploadFile(file);
 
             ProductImage image = ProductImage.builder()
-                    .imageName(fileName)
+                    .imageName(file.getOriginalFilename())
                     .imageType(file.getContentType())
-                    .imageUrl("/uploads/" + fileName)
+                    .imageUrl(imageUrl)
                     .product(product)
                     .build();
 
