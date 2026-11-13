@@ -5,7 +5,7 @@ interface ProductCardProps { product: Product; }
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080").replace(/\/$/, "");
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const imageUrl = product.imageUrls?.length ? `${API_BASE_URL}${product.imageUrls[0]}` : null;
+  const imageUrl = product.imageUrls?.length ? product.imageUrls[0].startsWith("http") ? product.imageUrls[0] : `${API_BASE_URL}${product.imageUrls[0]}` : null;
   const discountedPrice = product.price - (product.price * product.discountPercentage) / 100;
 
   return (

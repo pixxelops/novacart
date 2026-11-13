@@ -7,7 +7,9 @@ import { useAuth } from "../../context/useAuth";
 import { useCart } from "../../context/useCart";
 import { createBuyNowOrder } from "../../services/orderService";
 
-const API_URL = "http://localhost:8080";
+const API_URL = (
+  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080"
+).replace(/\/$/, "");
 
 export default function ProductDetails() {
 
@@ -160,7 +162,8 @@ const [cartError, setCartError] = useState("");
 
   const selectedImageUrl =
     imageUrls.length > 0
-      ? `${API_URL}${imageUrls[selectedImage]}`
+      ?imageUrls[selectedImage].startsWith("http")
+      ? imageUrls[selectedImage]: `${API_URL}${imageUrls[selectedImage]}`
       : null;
 
   const increaseQuantity = () => {
@@ -250,7 +253,7 @@ const [cartError, setCartError] = useState("");
                     <div className="flex aspect-square items-center justify-center">
 
                       <img
-                        src={`${API_URL}${image}`}
+                        src={image.startsWith("http") ? image : `${API_URL}${image}`}
                         alt={`${product.name} ${index + 1}`}
                         className="h-full w-full object-contain p-2"
                       />

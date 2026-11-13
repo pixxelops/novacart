@@ -8,8 +8,9 @@ import {
 import type { CartResponse } from "../../types/Cart";
 import { useNavigate } from "react-router-dom";
 
-const IMAGE_BASE_URL = "http://localhost:8080";
-
+const IMAGE_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080"
+).replace(/\/$/, "");
 const Cart = () => {
   const [cart, setCart] = useState<CartResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -168,9 +169,11 @@ const Cart = () => {
 
             {cart.items.map((item) => {
               const imageUrl =
-                item.imageUrls && item.imageUrls.length > 0
-                  ? `${IMAGE_BASE_URL}${item.imageUrls[0]}`
-                  : null;
+  item.imageUrls && item.imageUrls.length > 0
+    ? item.imageUrls[0].startsWith("http")
+      ? item.imageUrls[0]
+      : `${IMAGE_BASE_URL}${item.imageUrls[0]}`
+    : null;
 
               return (
                 <div
