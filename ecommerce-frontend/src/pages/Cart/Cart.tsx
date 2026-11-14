@@ -168,12 +168,15 @@ const Cart = () => {
           <div className="space-y-4 lg:col-span-2">
 
             {cart.items.map((item) => {
-              const imageUrl =
-  item.imageUrls && item.imageUrls.length > 0
-    ? item.imageUrls[0].startsWith("http")
-      ? item.imageUrls[0]
-      : `${IMAGE_BASE_URL}${item.imageUrls[0]}`
-    : null;
+              const imagePath = item.imageUrls?.find((url) =>
+  url.startsWith("http")
+) ?? item.imageUrls?.[0];
+
+const imageUrl = imagePath
+  ? imagePath.startsWith("http")
+    ? imagePath
+    : `${IMAGE_BASE_URL}${imagePath}`
+  : null;
 
               return (
                 <div

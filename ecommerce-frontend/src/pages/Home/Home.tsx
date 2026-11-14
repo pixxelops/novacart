@@ -35,7 +35,15 @@ export default function Home() {
   }, []);
 
   const featured = products[0];
-  const heroImage = featured?.imageUrls?.[0] ? `${API_BASE_URL}${featured.imageUrls[0]}` : null;
+  const heroImagePath = featured?.imageUrls?.find((url) =>
+  url.startsWith("http")
+) ?? featured?.imageUrls?.[0];
+
+const heroImage = heroImagePath
+?heroImagePath.startsWith("http")
+?heroImagePath
+:`${API_BASE_URL}${heroImagePath}`
+:null;
 
   return (
     <main className="nc-home">
