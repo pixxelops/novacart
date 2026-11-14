@@ -5,8 +5,21 @@ interface ProductCardProps { product: Product; }
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080").replace(/\/$/, "");
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const imageUrl = product.imageUrls?.length ? product.imageUrls[0].startsWith("http") ? product.imageUrls[0] : `${API_BASE_URL}${product.imageUrls[0]}` : null;
-  const discountedPrice = product.price - (product.price * product.discountPercentage) / 100;
+
+
+  const imagePath = product.imageUrls?.find((url) =>
+     url.startsWith("http") 
+  ?? product.imageUrls?.[0]);
+
+
+  const imageUrl = imagePath 
+  ? imagePath.startsWith("http") 
+  ? imagePath 
+  : `${API_BASE_URL}${imagePath}`
+  :null;
+ 
+ 
+  const discountedPrice  = product.price - (product.price * product.discountPercentage) / 100;
 
   return (
     <article className="nc-product-card">
