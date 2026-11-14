@@ -1,5 +1,7 @@
 package com.harsh.ecommerce.service.impl;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.harsh.ecommerce.entity.Product;
 import com.harsh.ecommerce.entity.ProductImage;
 import com.harsh.ecommerce.exception.ResourceNotFoundException;
@@ -9,9 +11,13 @@ import com.harsh.ecommerce.service.ProductImageService;
 import com.harsh.ecommerce.service.storage.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -21,6 +27,7 @@ public class ProductImageServiceImpl implements ProductImageService {
 private final ProductRepository productRepository;
 private final ProductImageRepository productImageRepository;
 private final FileStorageService fileStorageService;
+private final Cloudinary cloudinary;
 
     @Override
     public void uploadImages(Long productId, List<MultipartFile> files) {
@@ -30,21 +37,92 @@ private final FileStorageService fileStorageService;
 
 
         for(MultipartFile file : files){
-            String imageUrl = fileStorageService.uploadFile(file);
 
-            ProductImage image = ProductImage.builder()
-                    .imageName(file.getOriginalFilename())
-                    .imageType(file.getContentType())
-                    .imageUrl(imageUrl)
-                    .product(product)
-                    .build();
+            try{
+                Map<?,?> uploadResult = cloudinary.uploader().upload(
+                        file.getBytes(),
+                        ObjectUtils.asMap(
+                                "folder","novacart/products",
+                                "resource_type","image"
+                        )
 
-            productImageRepository.save(image);
+                );
+                String imageUrl = uploadResult.get("secure_url")
+                        .toString();
 
+                ProductImage image = ProductImage.builder()
+                        .imageName(file.getOriginalFilename())
+                        .imageType(file.getContentType())
+                        .imageUrl(imageUrl)
+                        .product(product)
+                        .build();
+                productImageRepository.save(image);
 
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to upload image to Cloudinary" + e.getMessage());
+            }
+        }
         }
 
 
+    @Override
+    public String migrateLocalImagesToCloudinary() {
+        List<ProductImage> images = productImageRepository.findAll();
 
+        int migrated = 0;
+        int skipped = 0;
+        int failed = 0;
+
+        for(ProductImage image : images){
+            String currentUrl = image.getImageUrl();
+
+            //already mirgraeted to Cloudinary
+
+            if(currentUrl != null && currentUrl.startsWith("http")){
+                skipped++;
+                continue;
+            }
+
+            try{
+                String fileName = image.getImageName();
+
+                File localFile = new File(
+                        "uploads" + File.separator + fileName
+                );
+
+                if(!localFile.exists()){
+                    failed++;
+                    continue;
+                }
+
+                Map<?,?> uploadResult = cloudinary.uploader().upload(
+                        localFile,
+                        ObjectUtils.asMap(
+                                "folder","novacart/products",
+                                "resource_type","image"
+                        )
+                        );
+                String cloudinaryUrl = uploadResult
+                        .get("secure_url").toString();
+
+                image.setImageUrl(cloudinaryUrl);
+                productImageRepository.save(image);
+                migrated++;
+
+            } catch (IOException e) {
+                failed++;
+                System.err.println(
+                        "Failed to migrate image: "
+                                + image.getImageName()
+                                + " - "
+                                + e.getMessage()
+                );
+            }
+        }
+
+        return "Migration completed. "
+                + "Migrated: " + migrated
+                + ", Skipped: " + skipped
+                + ", Failed: " + failed;
     }
 }

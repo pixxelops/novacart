@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface ProductImageService {
     void uploadImages(Long productId, List<MultipartFile>files);
+    String migrateLocalImagesToCloudinary();
 }
