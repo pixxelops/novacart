@@ -158,13 +158,15 @@ const [cartError, setCartError] = useState("");
     product.price -
     (product.price * product.discountPercentage) / 100;
 
-  const imageUrls = product.imageUrls ?? [];
+  const imageUrls = (product.imageUrls ?? []).filter((url)=>
+    url.startsWith("http")
+  );
+
 
   const selectedImageUrl =
     imageUrls.length > 0
-      ?imageUrls[selectedImage].startsWith("http")
-      ? imageUrls[selectedImage]: `${API_URL}${imageUrls[selectedImage]}`
-      : null;
+      ?imageUrls[selectedImage]
+      :null;
 
   const increaseQuantity = () => {
     if (quantity < product.stockQuantity) {
@@ -253,7 +255,7 @@ const [cartError, setCartError] = useState("");
                     <div className="flex aspect-square items-center justify-center">
 
                       <img
-                        src={image.startsWith("http") ? image : `${API_URL}${image}`}
+                        src={image}
                         alt={`${product.name} ${index + 1}`}
                         className="h-full w-full object-contain p-2"
                       />
