@@ -1,119 +1,96 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
-  getMyCart,
   updateCartItem,
   removeFromCart,
   clearCart,
 } from "../../services/cartService";
-import type { CartResponse } from "../../types/Cart";
-import { useNavigate } from "react-router-dom";
+import { useCart } from "../../context/useCart";
+
 
 const IMAGE_BASE_URL = (
   import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080"
 ).replace(/\/$/, "");
+
 const Cart = () => {
-  const [cart, setCart] = useState<CartResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const {
+    cart,
+    loading,
+    refreshCart,
+  } = useCart();
+
   const navigate = useNavigate();
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
+    void refreshCart();
+  }, [refreshCart]);
 
-    const fetchCart = async () => {
-      try {
-        const data = await getMyCart();
-
-        if (!cancelled) {
-          setCart(data);
-        }
-      } catch (error) {
-        console.error("Failed to load cart:", error);
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchCart();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const handleIncrease = async(
-    productId : number,
-    quantity : number
+  const handleIncrease = async (
+    productId: number,
+    quantity: number
   ) => {
-    try{
-      const updatedCart = await updateCartItem(
-        productId,
-        quantity + 1
-      );
-      setCart(updatedCart);
+    try {
+      setActionLoading(true);
 
-    }
-    catch(error){
-      console.error("Failed to update quantity :", error);
-    
-    }
-  }
+      await updateCartItem(productId, quantity + 1);
 
-  const handleDecrease = async(
-    productId : number,
-    quantity : number
-  ) => {
-    if(quantity <= 1){
-      return;
-    }
-
-    try{
-      const updatedCart = await updateCartItem(
-        productId,
-        quantity - 1
-      );
-      setCart(updatedCart);
-    }
-    catch(error){
-      console.error("Failed to update quantity :", error);
-    
-    }
-  }
-
-  const handleRemove = async(productId : number) => {
-    try{
-      const updatedCart = await removeFromCart(productId);
-      setCart(updatedCart);
-    }
-    catch(error){
-      console.error("Failed to remove item :", error);
+      await refreshCart();
+    } catch (error) {
+      console.error("Failed to update quantity:", error);
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  const handleClearCart = async() => {
-    try{
+  const handleDecrease = async (
+    productId: number,
+    quantity: number
+  ) => {
+    if (quantity <= 1) {
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+
+      await updateCartItem(productId, quantity - 1);
+
+      await refreshCart();
+    } catch (error) {
+      console.error("Failed to update quantity:", error);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRemove = async (productId: number) => {
+    try {
+      setActionLoading(true);
+
+      await removeFromCart(productId);
+
+      await refreshCart();
+    } catch (error) {
+      console.error("Failed to remove item:", error);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleClearCart = async () => {
+    try {
+      setActionLoading(true);
+
       await clearCart();
-      
-      setCart((currentCart) =>{
-        if(!currentCart){
-          return currentCart;
-        }
-        return {
-          ...currentCart,
-          items : [],
-          totalItems : 0,
-          totalPrice : 0,
 
-        };
-      });
+      await refreshCart();
+    } catch (error) {
+      console.error("Failed to clear cart:", error);
+    } finally {
+      setActionLoading(false);
     }
-    catch(error){
-      console.error("Failed to clear cart :", error);
-    }
-  }
-
-
+  };
 
   if (loading) {
     return (
@@ -156,7 +133,8 @@ const Cart = () => {
 
           <button
             onClick={handleClearCart}
-            className="text-sm font-medium text-red-600 hover:text-red-700"
+            disabled={actionLoading}
+            className="text-sm font-medium text-red-600 hover:text-red-700 disabled:opacity-50"
           >
             Clear Cart
           </button>
@@ -168,15 +146,17 @@ const Cart = () => {
           <div className="space-y-4 lg:col-span-2">
 
             {cart.items.map((item) => {
-              const imagePath = item.imageUrls?.find((url) =>
-  url.startsWith("http")
-) ?? item.imageUrls?.[0];
 
-const imageUrl = imagePath
-  ? imagePath.startsWith("http")
-    ? imagePath
-    : `${IMAGE_BASE_URL}${imagePath}`
-  : null;
+              const imagePath =
+                item.imageUrls?.find((url) =>
+                  url.startsWith("http")
+                ) ?? item.imageUrls?.[0];
+
+              const imageUrl = imagePath
+                ? imagePath.startsWith("http")
+                  ? imagePath
+                  : `${IMAGE_BASE_URL}${imagePath}`
+                : null;
 
               return (
                 <div
@@ -186,6 +166,7 @@ const imageUrl = imagePath
 
                   {/* Image */}
                   <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-md bg-gray-100">
+
                     {imageUrl ? (
                       <img
                         src={imageUrl}
@@ -197,6 +178,7 @@ const imageUrl = imagePath
                         No image
                       </span>
                     )}
+
                   </div>
 
                   {/* Product information */}
@@ -224,7 +206,10 @@ const imageUrl = imagePath
                               item.quantity
                             )
                           }
-                          disabled={item.quantity <= 1}
+                          disabled={
+                            actionLoading ||
+                            item.quantity <= 1
+                          }
                           className="px-3 py-1 text-lg hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           −
@@ -241,7 +226,8 @@ const imageUrl = imagePath
                               item.quantity
                             )
                           }
-                          className="px-3 py-1 text-lg hover:bg-gray-100"
+                          disabled={actionLoading}
+                          className="px-3 py-1 text-lg hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           +
                         </button>
@@ -253,10 +239,12 @@ const imageUrl = imagePath
                         onClick={() =>
                           handleRemove(item.productId)
                         }
-                        className="text-sm text-red-600 hover:text-red-700"
+                        disabled={actionLoading}
+                        className="text-sm text-red-600 hover:text-red-700 disabled:opacity-50"
                       >
                         Remove
                       </button>
+
                     </div>
                   </div>
 
@@ -270,6 +258,7 @@ const imageUrl = imagePath
                 </div>
               );
             })}
+
           </div>
 
           {/* Order Summary */}
@@ -299,14 +288,12 @@ const imageUrl = imagePath
                 </div>
 
               </div>
+
             </div>
 
             <button
               className="mt-6 w-full rounded-md bg-black px-4 py-3 font-medium text-white hover:bg-gray-800"
-              onClick={() => {
-                navigate("/checkout");
-                
-              }}
+              onClick={() => navigate("/checkout")}
             >
               Proceed to Checkout
             </button>
