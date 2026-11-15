@@ -41,8 +41,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/users/register",
-                                "/api/users/login",
-                                "/api/product-images/migrate-to-cloudinary"
+                                "/api/users/login"
                         ).permitAll()
                         .requestMatchers(
                                 HttpMethod.GET,
